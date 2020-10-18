@@ -8,21 +8,14 @@
 
 int normal_mode()
 {
-  cout<<"normal mode";
   update_screen_dim();
   clear_screen();
   cursor_position(1, 1);
-  // cout << "\033[2J\033[1;1H";
   content = read_folder(pwd);
   init_cursor();
   display_folder(content, pwd, 1);
   append_history(pwd);
   string prefix;
-  // struct winsize size;
-  // ioctl(0, TIOCGWINSZ, (char *)&size);
-  // screen_len = size.ws_row;
-  // screen_width = size.ws_col;
-  // normal_screen_len = screen_len - command_mode_len - 2;
   char c;
   while (true)
   {
@@ -36,18 +29,8 @@ int normal_mode()
     int new_screen_width = new_size.ws_col;
     if (new_screen_len != screen_len || new_screen_width != screen_width)
     {
-      // ioctl(0, TIOCGWINSZ, (char *)&size);
-      // screen_len = size.ws_row;
-      // screen_width = size.ws_col;
-      cout << "\033[2J\033[1;1H";
-      // normal_screen_len = screen_len - command_mode_len - 2;
       update_screen_dim();
       display_folder(content, pwd, cursor / normal_screen_len + 1);
-      string curs_pos = "\033[";
-      curs_pos.append(to_string((cursor + 1) % normal_screen_len));
-      curs_pos.append(";63H");
-      cout << curs_pos;
-      cout << "\033[1;63H";
     }
     c = getchar(); // reading character
     if (c == 27)
@@ -57,7 +40,7 @@ int normal_mode()
       c = getchar();
       switch (c)
       {
-      case 'A': // up
+      case 'A': // cursor up
         if (cursor % normal_screen_len == 0 && cursor != 0)
         {
           display_folder(content, pwd, cursor / normal_screen_len);
@@ -73,11 +56,9 @@ int normal_mode()
           cursor--;
         }
         break;
-      case 'B': // down
-        // cout<<cursor<<" "<<normal_screen_len;
+      case 'B': // cursor down
         if ((cursor + 1) % normal_screen_len == 0 && cursor != content_size - 1)
         {
-          // cout<<"here";
           display_folder(content, pwd, (cursor + 1) / normal_screen_len + 1);
           string curs_pos = "\033[";
           curs_pos.append(to_string(normal_screen_len));
@@ -91,7 +72,7 @@ int normal_mode()
           cursor++;
         }
         break;
-      case 'D': // left
+      case 'D': // left - previously visited directory
         if (hist_ind > 0)
         {
           pwd = history[--hist_ind];
@@ -100,7 +81,7 @@ int normal_mode()
           display_folder(content, pwd, 1);
         }
         break;
-      case 'C': // right
+      case 'C': // right - next visited directory
         if (hist_ind + 1 < history.size())
         {
           pwd = history[++hist_ind];
@@ -111,7 +92,7 @@ int normal_mode()
         break;
       }
     }
-    else if (c == 'k' || c == 'K')
+    else if (c == 'k' || c == 'K') //page up
     {
       if (cursor >= normal_screen_len)
       {
@@ -123,7 +104,7 @@ int normal_mode()
         cursor = (cursor / normal_screen_len - 1) * normal_screen_len;
       }
     }
-    else if (c == 'l' || c == 'L')
+    else if (c == 'l' || c == 'L') // page down
     {
       if ((content_size - (cursor / normal_screen_len) * normal_screen_len) >= normal_screen_len)
       {
@@ -157,8 +138,6 @@ int normal_mode()
         prefix = prefix.substr(0, i);
         pwd = prefix;
         content = read_folder(pwd);
-        // history.push_back(pwd);
-        // hist_ind++;
         append_history(pwd);
       }
       cout << "\033[2J\033[1;1H";
@@ -167,15 +146,28 @@ int normal_mode()
     }
     else if (c == '\n')
     {
-      pwd.append("/");
-      pwd.append(content[cursor]);
+      
+      if(cursor!=1){
+        pwd.append("/");
+        pwd.append(content[cursor]);
+      }
+      else{
+        prefix = pwd;
+        int i = prefix.length() - 1;
+        while (i > -1 && prefix[i] != '/')
+        {
+          i--;
+        }
+        if(i > 0)
+        {
+          prefix = prefix.substr(0, i);
+          pwd = prefix;
+        }
+      }
       struct stat buff;
       stat(pwd.c_str(), &buff);
       if (S_ISDIR(buff.st_mode))
       {
-        // history.resize(hist_ind + 1);
-        // history.push_back(pwd);
-        // hist_ind++;
         append_history(pwd);
         content = read_folder(pwd);
         cout << "\033[2J\033[1;1H";

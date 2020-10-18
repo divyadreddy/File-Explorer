@@ -10,7 +10,6 @@ vector<string> content;
 vector<string> history;
 
 struct winsize wsize;
-struct termios old_termios;
 
 int cursor = 0; 
 int hist_ind = -1;

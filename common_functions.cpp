@@ -18,30 +18,17 @@ string cwd()
   return path;
 }
 
-void disable_nc_mode()
-{
-  tcsetattr(STDIN_FILENO, TCSAFLUSH, &old_termios);
-}
-
-// tcgetattr(STDIN_FILENO, &old_termios);
-// atexit(disable_nc_mode);
-// struct termios term = old_termios;
-
 void change_mode()
 {
   struct termios term;
   tcgetattr(STDIN_FILENO, &term);
-  cout << term.c_lflag << endl;
-  // term.c_lflag &= ~(ECHO | ICANON);
   term.c_lflag &= ~ICANON;
   term.c_lflag &= ~ECHO;
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
-  cout << "Error in changing mode : " << strerror(errno);
 }
 
 vector<string> read_folder(string path)
 {
-  cout << "inside";
   vector<string> content;
   DIR *dirp = opendir(path.c_str());
   struct dirent *dp;

@@ -488,7 +488,9 @@ void create_dir(vector<string> command)
       path.append("/");
       path.append(directory);
       path = transform_path(path);
-      if (mkdir(path.c_str(), 0755) == -1)
+      if(path_exists(path)){
+        cout << "Error in creating directory : Directory already exists " << path;
+      } else if (mkdir(path.c_str(), 0755) == -1)
       {
         cout << "Error in creating directory : " << path;
       }
